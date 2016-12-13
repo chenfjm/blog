@@ -1,11 +1,4 @@
----
-layout: post
-title: linux socket 编程基础
-category: linux
-description:
----
-
-**socket介绍**  
+## socket介绍* 
 
 要弄清楚什么是socket，首先得理解系统是如何唯一标识一个网络中的进程的，进程间是如何通信的。网络层的"ip地址"可以唯一标识网络中的主机，而传输层的"协议+端口"可以唯一标识主机中的应用程序（进程）。这样利用三元组（ip地址，协议，端口）就可以标识网络的进程了，网络中的进程通信就可以利用这个标志与其它进程进行交互。而目前英特网中的进程间交互遵循的协议叫TCP/IP协议。使用TCP/IP协议的应用程序通常采用应用编程接口UNIX BSD的套接字（socket）来实现网络进程之间的通信。  
 
@@ -16,7 +9,7 @@ description:
 - 数据报套接字（SOCK_DGRAM）,数据报套接字提供了一种无连接的服务，使用UDP协议进行数据的传输。
 - 原始套接字(SOCK_RAW),原始套接字可以读写内核没有处理的IP数据包，而流套接字只能读取TCP协议的数据，数据报套接字只能读取UDP协议的数据。  
 
-**socket API**  
+## socket API 
 
 socket()  
 
@@ -139,7 +132,7 @@ close()
 
 在服务器与客户端建立连接之后，会进行一些读写操作，完成了读写操作就要关闭相应的socket描述字，好比操作完打开的文件要调用fclose关闭打开的文件。  
 
-**socket系统调用**  
+## socket系统调用  
 
 Linux下，用户空间调用的socket API由glibc实现，glibc实现系统调用同名函数通常使用INT 0x80 + 系统调用号的方式陷入内核，一般来说，read对应sys_read,write对应sys_write.但是，socket系列却不是这样，为了节约系统调用号，将所有的socket系列的接口使用同一个系统调用号陷入内核，即socketcall:  
 
@@ -170,3 +163,5 @@ Linux下，用户空间调用的socket API由glibc实现，glibc实现系统调�
 socketcall函数用一个简单的逻辑分枝将不同的socket调用分发到对应的内核函数中。  
 
  
+
+

@@ -1,13 +1,7 @@
----
-layout: post
-title: 使用coroutine进行异步编程
-category: web
-description:
----
+> 在tornado3发布之后，强化了coroutine的概念，在异步编程中，替代了原来的gen.engine，变成现在的gen.coroutine。这个装饰器本来就是为了简化在tornado中的异步编程。避免写回调函数，
+使得开发起来更加符合正常逻辑思维。
 
-在tornado3发布之后，强化了coroutine的概念，在异步编程中，替代了原来的gen.engine，
-变成现在的gen.coroutine。这个装饰器本来就是为了简化在tornado中的异步编程。避免写回调函数，
-使得开发起来更加符合正常逻辑思维。一个简单的例子如下：
+一个简单的例子如下：
 
     class MaindHandler(web.RequestHandler):
         @asynchronous
@@ -23,11 +17,9 @@ description:
                 self.write(json.dumps(resp, indent=4, separators={',', ':')))
             self.finish()}))
 
-在yield语句之后，ioloop将会注册该事件，等到resp返回之后继续执行。这个过程是异步的。在这里使用json.dumps，而没有使用tornado自带的escape.json_encode，是因为在构建REST风格的API的时候，往往会从浏览器里访问获取JSON格式的数据。使用json.dumps格式化数据之后，在浏览器端显示查看的时候会更加友好。Github
-API就是这一风格的使用者。其实escape.json_encode就是对json.dumps的简单包装，我在提pull
-request要求包装更多功能的时候，作者的回答escape并不打算提供全部的json功能，使用者可以自己直接使用json模块。  
+在yield语句之后，ioloop将会注册该事件，等到resp返回之后继续执行。这个过程是异步的。在这里使用json.dumps，而没有使用tornado自带的escape.json_encode，是因为在构建REST风格的API的时候，往往会从浏览器里访问获取JSON格式的数据。使用json.dumps格式化数据之后，在浏览器端显示查看的时候会更加友好。Github API就是这一风格的使用者。其实escape.json_encode就是对json.dumps的简单包装，我在提pull request要求包装更多功能的时候，作者的回答escape并不打算提供全部的json功能，使用者可以自己直接使用json模块。  
 
-**Gen.coroutine原理**
+## Gen.coroutine原理
 
 要使用tornado的异步特性，必须使用异步的库。否则单个进程阻塞，根本不会达到异步的效果。Tornado的异步库中最常用的就是自带的AsyncHTTPClient，以及在其基础上实现的OpenID登录验证接口。另外更多的异步库可以在[这里](https://github.com/tornadoweb/tornado/wiki/Links)找到。包括用的比较多的MongoDB的Driver。
 
@@ -50,7 +42,7 @@ request要求包装更多功能的时候，作者的回答escape并不打算提�
 
 已经在运行的函数会挂起，直到调用它的client使用send方法，原来函数继续运行。而这里的gen.coroutine方法就是异步执行需要的操作，然后等待结果返回之后，再send到原函数，原函数则会继续执行，这样就以同步方式写的代码达到了异步执行的效果。
 
-**Tornado异步编程**
+## Tornado异步编程
 
 使用coroutine实现函数分离的异步编程。具体如下：
 
@@ -86,7 +78,7 @@ request要求包装更多功能的时候，作者的回答escape并不打算提�
 
 这里，当把异步封装在一个函数中的时候，并不是像普通程序那样使用return关键字进行返回，gen模块提供了一个gen.Return的方法。是通过raise方法实现的。这个也是和它是使用生成器方式实现有关的。
 
-**使用coroutine跑定时任务**
+## 使用coroutine跑定时任务
 
 Tornado中有这么一个方法：
 
@@ -139,7 +131,7 @@ Application启动之后，定时任务就会随着跑起来，而且因为它是
 
 在sync_loop_call装饰器中，我在wrap_func函数上加了@gen.coroutine装饰器，这样就保证只有yeild的函数执行完之后，才会执行add_timeout操作。如果没有@gen.coroutine装饰器。那么不等到yeild返回，就会执行add_timeout了。
 
-**总结**
+## 总结
 
 Tornado是一个非阻塞的web服务器以及web框架，但是在使用的时候只有使用异步的库才会真正发挥它异步的优势，当然有些时候因为App本身要求并不是很高，如果不是阻塞特别严重的话，也不会有问题。另外使用coroutine模块进行异步编程的时候，当把一个功能封装到一个函数中时，在函数运行中，即使出现错误，如果没有去捕捉的话也不会抛出，这在调试上显得非常困难。
 

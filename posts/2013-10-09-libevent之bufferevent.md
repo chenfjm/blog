@@ -1,10 +1,5 @@
----
-layout: post
-title: libevent之bufferevent
-category: 网络
-description:
----
-**基本概念**  
+
+## 基本概念
 
 很多时候，除了响应事件之外，应用还希望做一定的数据缓冲。比如说，写入数据的时候，通常的运行模式是：  
 
@@ -13,7 +8,8 @@ description:
 3. 写入尽量多的数据
 4. 记住写入了多少数据，如果还有更多数据要写入，等待连接再次可以写入  
 
-这种缓冲IO模式很通用，libevent为此提供了一种通用机制，即bufferevent。bufferevent由一个底层的传输端口（如套接字），一个读取缓冲区和一个写入缓冲区组成。与通常的事件在底层传输端口已经就绪，可以读取或者写入的时候执行回调不同的是，bufferevent在读取或者写入了足够量的数据之后调用用户提供的回调。  
+> 这种缓冲IO模式很通用，libevent为此提供了一种通用机制，即bufferevent。bufferevent由一个底层的传输端口（如套接字），一个读取缓冲区和一个写入缓冲区组成。与通常的事件在底层传输端口已经就绪，可以读取或者写入的时候执行回调不同的是，bufferevent在读取或者写入了足够量的数据之后调用用户提供的回调。  
+
 有多种共享公用接口的bufferevent类型：  
 
 - 基于套接字的bufferevent：使用event_*接口作为后端，通过底层流式套接字发送或者接收数据的bufferevent  
@@ -49,7 +45,7 @@ bufferevent也有“错误”或者“事件”回调，用于向应用通知非
 - BEV_OPT_DEFER_CALLBACKS：设置这个标志时，bufferevent延迟所有回调，如上所述。  
 - BEV_OPT_UNLOCK_CALLBACKS：默认情况下，如果设置bufferevent为线程安全的，则bufferevent会在调用用户提供的回调时进行锁定。设置这个选项会让libevent在执行回调的时候不进行锁定。  
 
-**基于套接字的bufferevent**  
+## 基于套接字的bufferevent  
 
 基于套接字的bufferevent是最简单的，它使用libevent的底层事件机制来检测底层网络套接字是否已经就绪，可以进行读写操作，并且使用底层网络调用（如readv、writev、WSASend、WSARecv）来发送和接收数据。  
 
@@ -79,7 +75,7 @@ address和addrlen参数跟标准调用connect()的参数相同。如果还没有
 这个函数解析名字hostname，查找其family类型的地址（允许的地址族类型有AF_INET,AF_INET6和AF_UNSPEC）。如果名字解析失败，函数将调用事件回调，报告错误事件。如果解析成功，函数将启动连接请求，就像bufferevent_socket_connect()一样。dns_base参数是可选的：如果为NULL，等待名字查找完成期间调用线程将被阻塞，而这通常不是期望的行为；如果提供dns_base参数，libevent将使用它来异步地查询主机名。  
 跟bufferevent_socket_connect()一样，函数告知libevent，bufferevent上现存的套接字还没有连接，在名字解析和连接操作成功完成之前，不应该对套接字进行读取或者写入操作。函数返回的错误可能是DNS主机名查询错误，可以调用bufferevent_socket_get_dns_error()来获取最近的错误。返回值0表示没有检测到DNS错误。  
 
-**过滤型bufferevent**  
+## 过滤型bufferevent  
 
 有时候需要转换传递给某bufferevent的所有数据，这可以通过添加一个压缩层，或者将协议包装到另一个协议中进行传输来实现。  
 
@@ -103,7 +99,7 @@ address和addrlen参数跟标准调用connect()的参数相同。如果还没有
 过滤型bufferevent有时候需要转换传递给某bufferevent的所有数据，这可以通过添加一个压缩层，或者将协议包装到另一个协议中进行传输来实现。  
 接口bufferevent_filter_new（）函数创建一个封装现有的底层bufferevent的过滤bufferevent。所有通过底层bufferevent接收的数据在到达过滤bufferevent之前都会经过输入过滤器的转换；所有通过底层bufferevent发送的数据在被发送到底层bufferevent之前都会经过输出过滤器的转换。向底层bufferevent添加过滤器将替换其回调函数。可以向底层bufferevent的evbuffer添加回调函数，但是如果想让过滤器正确工作，就不能再设置bufferevent本身的回调函数。  
 
-**成对的bufferevent**  
+## 成对的bufferevent 
 
 有时候网络程序需要与自身通信。比如说，通过某些协议对用户连接进行隧道操作的程序，有时候也需要通过同样的协议对自身的连接进行隧道操作。当然，可以通过打开一个到自身监听端口的连接，让程序使用这个连接来达到这种目标。但是，通过网络栈来与自身通信比较浪费资源。替代的解决方案是，创建一对成对的bufferevent。这样，写入到一个bufferevent的字节都被另一个接收（反过来也是），但是不需要使用套接字。  
 
@@ -116,7 +112,7 @@ address和addrlen参数跟标准调用connect()的参数相同。如果还没有
 
 有时候在给出了对的一个成员时，需要获取另一个成员，这时候可以使用bufferevent_pair_get_partner()。如果bev是对的成员，而且对的另一个成员仍然存在，函数将返回另一个成员；否则，函数返回NULL。  
 
-**通用bufferevent操作**  
+## 通用bufferevent操作  
 
 	void bufferevent_free(struct bufferevent *bev);  
 
@@ -182,7 +178,7 @@ bufferevent_setwatermark()函数调整单个bufferevent的读取水位、写入�
 
 清空bufferevent要求bufferevent强制从底层传输端口读取或者写入尽可能多的数据，而忽略其他可能保持数据不被写入的限制条件。函数的细节功能依赖于bufferevent的具体类型。  
 
-**类型特定的bufferevent操作**  
+## 类型特定的bufferevent操作 
 
 这些bufferevent函数不能支持所有bufferevent类型。  
 
@@ -204,7 +200,7 @@ bufferevent_setwatermark()函数调整单个bufferevent的读取水位、写入�
 
 这个函数返回作为bufferevent底层传输端口的另一个bufferevent。  
 
-**手动锁定和解锁**  
+## 手动锁定和解锁  
 
 有时候需要确保对bufferevent的一些操作是原子地执行的。为此，libevent提供了手动锁定和解锁bufferevent的函数。  
 

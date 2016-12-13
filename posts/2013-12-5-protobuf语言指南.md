@@ -1,10 +1,4 @@
----
-layout: post
-title: protobuf语言指南
-category: 工具
-description:
----
-**定义消息类型**  
+## 定义消息类型
 
 	message SearchRequest {
   		required string query = 1;
@@ -28,7 +22,8 @@ description:
 
 在一个.proto文件中可以定义多个消息类型,向.proto文件添加注释，可以使用C/C++/java风格的双斜杠（//） 语法格式。对C++来说，编译器会为每个.proto文件生成一个.h文件和一个.cc文件，.proto文件中的每一个消息有一个对应的类。对Java来说，编译器为每一个消息类型生成了一个.java文件，以及一个特殊的Builder类（该类是用来创建消息类接口的）。对Python来说，有点不太一样——Python编译器为.proto文件中的每个消息类型生成一个含有静态描述符的模块，该模块与一个元类（metaclass）在运行时（runtime）被用来创建所需的Python数据访问类。  
 
-**标量数值类型**  
+## 标量数值类型
+  
 <table class="table table-bordered table-striped table-condensed">
 <tr>
 <th width="100">proto类型</th>
@@ -125,11 +120,11 @@ description:
 </tr>
 </table>  
 
-**枚举**  
+## 枚举 
 
 当需要定义一个消息类型的时候，可能想为一个字段指定某“预定义值序列”中的一个值。枚举常量必须在32位整型值的范围内。因为enum值是使用可变编码方式的，对负数不够高效，因此不推荐在enum中使用负数。当对一个使用了枚举的.proto文件运行protocol buffer编译器的时候，生成的代码中将有一个对应的enum（对Java或C++来说），或者一个特殊的EnumDescriptor类（对Python来说），它被用来在运行时生成的类中创建一系列的整型值符号常量（symbolic constants）。  
 
-**使用其他消息类型**  
+## 使用其他消息类型  
 
 可以将其他消息类型用作字段类型。例如，假设在每一个SearchResponse消息中包含Result消息，此时可以在相同的.proto文件中定义一个Result消息类型，然后在SearchResponse消息中指定一个Result类型的字段，如：  
 
@@ -148,7 +143,7 @@ description:
 
 protocol编译器就会在一系列目录中查找需要被导入的文件，这些目录通过protocol编译器的命令行参数-I/–import_path指定。如果不提供参数，编译器就在其调用目录下查找。  
 
-**嵌套类型**  
+## 嵌套类型  
 
 你可以在其他消息类型中定义、使用消息类型，在下面的例子中，Result消息就定义在SearchResponse消息内，如：  
 
@@ -167,9 +162,9 @@ protocol编译器就会在一系列目录中查找需要被导入的文件，这
   		optional SearchResponse.Result result = 1;
 	}  
 
-**更新一个消息类型**  
+## 更新一个消息类型  
 
-如果一个已有的消息格式已无法满足新的需求——如，要在消息中添加一个额外的字段——但是同时旧版本写的代码仍然可用。不用担心！更新消息而不破坏已有代码是非常简单的。在更新时只要记住以下的规则即可。  
+> 如果一个已有的消息格式已无法满足新的需求——如，要在消息中添加一个额外的字段——但是同时旧版本写的代码仍然可用。不用担心！更新消息而不破坏已有代码是非常简单的。在更新时只要记住以下的规则即可。  
 
 
 - 不要更改任何已有的字段的数值标识。
@@ -182,7 +177,7 @@ protocol编译器就会在一系列目录中查找需要被导入的文件，这
 - 嵌套消息与bytes是兼容的——只要bytes包含该消息的一个编码过的版本。
 - fixed32与sfixed32是兼容的，fixed64与sfixed64是兼容的。  
 
-**扩展**  
+## 扩展
 
 通过扩展，可以将一个范围内的字段标识号声明为可被第三方扩展所用。然后，其他人就可以在他们自己的.proto文件中为该消息类型声明新的字段，而不必去编辑原始文件了:  
 
@@ -197,7 +192,7 @@ protocol编译器就会在一系列目录中查找需要被导入的文件，这
   		optional int32 bar = 126;
 	}  
 
-**包**  
+## 包 
 
 可以为.proto文件新增一个可选的package声明符，用来防止不同的消息类型有命名冲突:  
 
@@ -212,7 +207,7 @@ protocol编译器就会在一系列目录中查找需要被导入的文件，这
  		...
 	}  
 
-**定义服务**  
+## 定义服务  
 
 如果想要将消息类型用在RPC(远程方法调用)系统中，可以在.proto文件中定义一个RPC服务接口，protocol buffer编译器将会根据所选择的不同语言生成服务接口代码及存根。如，想要定义一个RPC服务并具有一个方法，该方法能够接收 SearchRequest并返回一个SearchResponse，此时可以在.proto文件中进行如下定义：  
 
@@ -220,7 +215,7 @@ protocol编译器就会在一系列目录中查找需要被导入的文件，这
   		rpc Search (SearchRequest) returns (SearchResponse);
 	}  
 
-**选项**  
+## 选项  
 
 在定义.proto文件时能够标注一系列的options。Options并不改变整个文件声明的含义，但却能够影响特定环境下处理方式。完整的可用选项可以在google/protobuf/descriptor.proto找到。
 一些选项是文件级别的，意味着它可以作用于最外范围，不包含在任何消息内部、enum或服务定义中。一些选项是消息级别的，意味着它可以用在消息定 义的内部。当然有些选项可以作用在域、enum类型、enum值、服务类型及服务方法中。到目前为止，并没有一种有效的选项能作用于所有的类型。  
@@ -248,7 +243,7 @@ ProtocolBuffers允许自定义并使用选项，由于options是定在 google/pr
 
 	string value = MyMessage::descriptor()->options().GetExtension(my_option);  
 
-**生成代码**　　
+## 生成代码　　
 
 可以通过定义好的.proto文件来生成Java、Python、C++代码，需要基于.proto文件运行protocolbuffer编译器protoc。运行的命令如下所示：  
 
